@@ -13,40 +13,82 @@ class GameEngine:
         self.width = width
         self.height = height
 
-        self.bird = Bird(width // 4, height // 2)
         self.pipe_speed = 4
-        self.pipe_interval = 90  # frames between pipe spawns
+        self.pipe_gap = 150
+        self.pipe_interval = 90
+
+        self.bird = Bird(width // 4, height // 2)
         self._spawn_timer = 0
-        self.pipes = [Pipe(width + 100, height, speed=self.pipe_speed)]
+        self.pipes = [
+            Pipe(
+                width + 100,
+                height,
+                gap=self.pipe_gap,
+                speed=self.pipe_speed
+            )
+        ]
 
         self.score = 0
         self.font = pygame.font.SysFont("Arial", 30)
         self.game_over = False
+        self.difficulty_menu = False
+        self.exit_game = False
 
     def handle_event(self, event):
-        # Handle flap and restart input
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+        if event.type == pygame.KEYDOWN:
+
+            # Task 3: Difficulty selection after Game Over
             if self.game_over:
-                self.reset()
+                if event.key == pygame.K_1:
+                    self.set_difficulty("Easy")
+                elif event.key == pygame.K_2:
+                    self.set_difficulty("Medium")
+                elif event.key == pygame.K_3:
+                    self.set_difficulty("Hard")
+                elif event.key == pygame.K_4:
+                    self.exit_game = True
+
+            # Normal gameplay
             else:
-                self.bird.flap()
+                if event.key == pygame.K_SPACE:
+                    self.bird.flap()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.game_over:
-                self.reset()
-            else:
+            if not self.game_over:
                 self.bird.flap()
 
     def handle_input(self):
         # Reserved for continuously-held-key input
         pass
 
+    def set_difficulty(self, difficulty):
+        if difficulty == "Easy":
+            self.pipe_speed = 3
+            self.pipe_gap = 190
+
+        elif difficulty == "Medium":
+            self.pipe_speed = 4
+            self.pipe_gap = 150
+
+        elif difficulty == "Hard":
+            self.pipe_speed = 6
+            self.pipe_gap = 110
+
+        self.reset()
+
     def reset(self):
-        """Reset the game after Game Over."""
+        """Reset the game after choosing a difficulty."""
         self.bird = Bird(self.width // 4, self.height // 2)
+
         self.pipes = [
-            Pipe(self.width + 100, self.height, speed=self.pipe_speed)
+            Pipe(
+                self.width + 100,
+                self.height,
+                gap=self.pipe_gap,
+                speed=self.pipe_speed
+            )
         ]
+
         self._spawn_timer = 0
         self.score = 0
         self.game_over = False
@@ -69,8 +111,14 @@ class GameEngine:
 
         if self._spawn_timer >= self.pipe_interval:
             self._spawn_timer = 0
+
             self.pipes.append(
-                Pipe(self.width, self.height, speed=self.pipe_speed)
+                Pipe(
+                    self.width,
+                    self.height,
+                    gap=self.pipe_gap,
+                    speed=self.pipe_speed
+                )
             )
 
         for pipe in self.pipes:
@@ -88,7 +136,10 @@ class GameEngine:
                 pipe.scored = True
                 self.score += 1
 
-        self.pipes = [p for p in self.pipes if not p.off_screen()]
+        self.pipes = [
+            p for p in self.pipes
+            if not p.off_screen()
+        ]
 
     def render(self, screen):
         # Draw pipes
@@ -104,7 +155,7 @@ class GameEngine:
             self.bird.radius
         )
 
-        # Draw current score
+        # Draw score
         score_text = self.font.render(
             f"Score: {self.score}",
             True,
@@ -112,7 +163,7 @@ class GameEngine:
         )
         screen.blit(score_text, (10, 10))
 
-        # Task 2: Game Over screen
+        # Task 2 + Task 3
         if self.game_over:
             game_over_text = self.font.render(
                 "GAME OVER",
@@ -126,8 +177,32 @@ class GameEngine:
                 WHITE
             )
 
-            restart_text = self.font.render(
-                "Press SPACE to restart",
+            difficulty_text = self.font.render(
+                "Choose Difficulty",
+                True,
+                WHITE
+            )
+
+            easy_text = self.font.render(
+                "1 - Easy",
+                True,
+                WHITE
+            )
+
+            medium_text = self.font.render(
+                "2 - Medium",
+                True,
+                WHITE
+            )
+
+            hard_text = self.font.render(
+                "3 - Hard",
+                True,
+                WHITE
+            )
+
+            exit_text = self.font.render(
+                "4 - Exit",
                 True,
                 WHITE
             )
@@ -136,7 +211,7 @@ class GameEngine:
                 game_over_text,
                 (
                     self.width // 2 - game_over_text.get_width() // 2,
-                    250
+                    180
                 )
             )
 
@@ -144,15 +219,46 @@ class GameEngine:
                 final_score_text,
                 (
                     self.width // 2 - final_score_text.get_width() // 2,
-                    300
+                    230
                 )
             )
 
             screen.blit(
-                restart_text,
+                difficulty_text,
                 (
-                    self.width // 2 - restart_text.get_width() // 2,
-                    350
+                    self.width // 2 - difficulty_text.get_width() // 2,
+                    290
                 )
             )
-            
+
+            screen.blit(
+                easy_text,
+                (
+                    self.width // 2 - easy_text.get_width() // 2,
+                    340
+                )
+            )
+
+            screen.blit(
+                medium_text,
+                (
+                    self.width // 2 - medium_text.get_width() // 2,
+                    380
+                )
+            )
+
+            screen.blit(
+                hard_text,
+                (
+                    self.width // 2 - hard_text.get_width() // 2,
+                    420
+                )
+            )
+
+            screen.blit(
+                exit_text,
+                (
+                    self.width // 2 - exit_text.get_width() // 2,
+                    460
+                )
+            )
