@@ -52,12 +52,8 @@ class GameEngine:
         for pipe in self.pipes:
             pipe.move()
 
-            # NOTE: collision only checks the bird's single center point
-            # against the pipe rects, rather than the bird's full rect.
-            # At higher pipe speeds the bird can visually clip a pipe's
-            # edge for a frame or two without this ever registering a
-            # hit. See Task 1 in the README.
-            if pipe.top_rect().collidepoint(self.bird.center()) or pipe.bottom_rect().collidepoint(self.bird.center()):
+            if self.bird.rect().colliderect(pipe.top_rect()) or \
+            self.bird.rect().colliderect(pipe.bottom_rect()):
                 self.game_over = True
 
             if not pipe.scored and pipe.x + pipe.width < self.bird.x:
